@@ -3,7 +3,7 @@ defmodule VillageWeb.PageController do
 
   def index(conn, _params) do
     if Pow.Plug.current_user(conn) do
-      redirect(conn, to: Routes.feed(conn))
+      redirect(conn, to: "/feed")
     else
       render(conn, "index.html")
     end

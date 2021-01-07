@@ -10,7 +10,8 @@ defmodule Village.Feed do
   alias Village.Feed.Post
   alias Village.Accounts.User
 
-  def authorize(action, %User{} = user, %Post{} = post) when action in [:update, :delete, :edit] do
+  def authorize(action, %User{} = user, %Post{} = post)
+      when action in [:update, :delete, :edit] do
     cond do
       user.role == "admin" -> :ok
       user.id == post.author_id -> :ok
@@ -29,6 +30,7 @@ defmodule Village.Feed do
   """
   def list_posts do
     Repo.all(Post)
+    |> Repo.preload(:author)
   end
 
   @doc """
@@ -45,7 +47,10 @@ defmodule Village.Feed do
       ** (Ecto.NoResultsError)
 
   """
-  def get_post!(id), do: Repo.get!(Post, id)
+  def get_post!(id) do
+    Repo.get!(Post, id)
+    |> Repo.preload(:author)
+  end
 
   @doc """
   Creates a post.
@@ -112,5 +117,4 @@ defmodule Village.Feed do
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
   end
-
 end

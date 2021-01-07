@@ -1,0 +1,19 @@
+<div class="flex flex-col items-center space-y-1.5 pt-5">
+    <div class="bg-red-100">
+        <form>
+            <textarea name="new_post_content" id="new_post" cols="30" rows="10">
+            Write here!
+            </textarea><br/>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    <div class="bg-blue-100">
+    <%= for post <- @posts do %>
+        <div>
+            <h2><%= post.author.email %></h2>
+            <p><%= post.content %></p>
+            <!-- Comments -->
+        </div>      
+    <% end %>
+    </div>
+</div>

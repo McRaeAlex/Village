@@ -41,8 +41,7 @@ defmodule VillageWeb.PostController do
     post = Feed.get_post!(id)
 
     with :ok <- Bodyguard.permit(Feed, :edit, user, post),
-      {:ok, changeset} <- Feed.change_post(post)
-    do
+         {:ok, changeset} <- Feed.change_post(post) do
       render(conn, "edit.html", post: post, changeset: changeset)
     end
   end
@@ -69,8 +68,7 @@ defmodule VillageWeb.PostController do
     post = Feed.get_post!(id)
 
     with :ok <- Bodyguard.permit(Feed, :delete, user, post),
-        {:ok, _post} <- Feed.delete_post(post)
-    do
+         {:ok, _post} <- Feed.delete_post(post) do
       conn
       |> put_flash(:info, "Post deleted successfully.")
       |> redirect(to: Routes.post_path(conn, :index))
