@@ -2,11 +2,21 @@ defmodule Village.Feed do
   @moduledoc """
   The Feed context.
   """
+  @behaviour Bodyguard.Policy
 
   import Ecto.Query, warn: false
   alias Village.Repo
 
   alias Village.Feed.Post
+  alias Village.Accounts.User
+
+  def authorize(action, %User{} = user, %Post{} = post) when action in [:update, :delete, :edit] do
+    cond do
+      user.role == "admin" -> :ok
+      user.id == post.author_id -> :ok
+      true -> {:error, :unauthorized}
+    end
+  end
 
   @doc """
   Returns the list of posts.
@@ -49,7 +59,7 @@ defmodule Village.Feed do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_post(%Village.Accounts.User = author, attrs \\ %{}) do
+  def create_post(%Village.Accounts.User{} = author, attrs \\ %{}) do
     %Post{}
     |> Post.changeset(attrs)
     |> Ecto.Changeset.put_change(:author_id, author.id)
@@ -102,4 +112,5 @@ defmodule Village.Feed do
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
   end
+
 end

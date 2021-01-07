@@ -1,0 +1,3 @@
+<p class="" role="alert"><%= live_flash(@flash, :notice) %></p>
+<p class="" role="alert"><%= live_flash(@flash, :error) %></p>
+<%= @inner_content %>

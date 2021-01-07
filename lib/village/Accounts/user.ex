@@ -3,6 +3,8 @@ defmodule Village.Accounts.User do
   use Pow.Ecto.Schema
 
   schema "users" do
+    field :role, :string, default: "user"
+
     pow_user_fields()
 
     has_many :posts, Village.Accounts.User, foreign_key: :author_id

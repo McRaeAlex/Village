@@ -5,7 +5,8 @@ defmodule VillageWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_flash
+    plug :fetch_live_flash
+    plug :put_root_layout, {VillageWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -21,6 +22,13 @@ defmodule VillageWeb.Router do
   scope "/", VillageWeb do
     pipe_through [:browser, :protected]
 
+    # live "/posts", PostLive.Index, :index
+    # live "/posts/new", PostLive.Index, :new
+    # live "/posts/:id/edit", PostLive.Index, :edit
+
+    # live "/posts/:id", PostLive.Show, :show
+    # live "/posts/:id/show/edit", PostLive.Show, :edit
+    
     resources "/posts", PostController
   end
 
@@ -53,7 +61,7 @@ defmodule VillageWeb.Router do
 
     scope "/" do
       pipe_through :browser
-      live_dashboard "/dashboard", metrics: VillageWeb.Telemetry, ecto_repos: [MyApp.Repo]
+      live_dashboard "/dashboard", metrics: VillageWeb.Telemetry, ecto_repos: [Village.Repo]
     end
   end
 end

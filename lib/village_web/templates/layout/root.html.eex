@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Village · Phoenix Framework</title>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
+    <%= csrf_meta_tag() %>
+    <script defer type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+  </head>
+  <body>
+    <header class="bg-green-500 py-4 lg:px-40 px-8 flex justify-between items-center">
+      <h1 class="text-3xl">Village</h1>
+      <nav role="navigation" class="">
+        <%= if !Pow.Plug.current_user(@conn) do %>
+          <span>
+            <%= link "Sign In", to: Routes.pow_session_path(@conn, :new), method: :get %>
+          </span>
+          <span>
+            <%= link "Register", to: Routes.pow_registration_path(@conn, :new), method: :get %>
+          </span>
+        <% else %>
+          <span>
+            <%= link "Sign Out", to: Routes.pow_session_path(@conn, :delete), method: :delete %>
+          </span>
+        <% end %>
+      </nav>
+    </header>
+    <main role="main" class="">
+      <%= @inner_content %>
+    </main>
+  </body>
+</html>

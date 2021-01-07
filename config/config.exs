@@ -29,7 +29,8 @@ config :phoenix, :json_library, Jason
 # Use pow
 config :village, :pow,
   user: Village.Accounts.User,
-  repo: Village.Repo
+  repo: Village.Repo,
+  web_module: VillageWeb
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

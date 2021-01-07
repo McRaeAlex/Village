@@ -4,9 +4,12 @@ defmodule VillageWeb.PostController do
   alias Village.Feed
   alias Village.Feed.Post
 
+  action_fallback VillageWeb.FallbackController
+
   def index(conn, _params) do
+    user = Pow.Plug.current_user(conn)
     posts = Feed.list_posts()
-    render(conn, "index.html", posts: posts)
+    render(conn, "index.html", posts: posts, current_user: user)
   end
 
   def new(conn, _params) do
@@ -34,31 +37,43 @@ defmodule VillageWeb.PostController do
   end
 
   def edit(conn, %{"id" => id}) do
+    user = Pow.Plug.current_user(conn)
     post = Feed.get_post!(id)
-    changeset = Feed.change_post(post)
-    render(conn, "edit.html", post: post, changeset: changeset)
+
+    with :ok <- Bodyguard.permit(Feed, :edit, user, post),
+      {:ok, changeset} <- Feed.change_post(post)
+    do
+      render(conn, "edit.html", post: post, changeset: changeset)
+    end
   end
 
   def update(conn, %{"id" => id, "post" => post_params}) do
+    user = Pow.Plug.current_user(conn)
     post = Feed.get_post!(id)
 
-    case Feed.update_post(post, post_params) do
-      {:ok, post} ->
-        conn
-        |> put_flash(:info, "Post updated successfully.")
-        |> redirect(to: Routes.post_path(conn, :show, post))
+    with :ok <- Bodyguard.permit(Feed, :update, user, post) do
+      case Feed.update_post(post, post_params) do
+        {:ok, post} ->
+          conn
+          |> put_flash(:info, "Post updated successfully.")
+          |> redirect(to: Routes.post_path(conn, :show, post))
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "edit.html", post: post, changeset: changeset)
+        {:error, %Ecto.Changeset{} = changeset} ->
+          render(conn, "edit.html", post: post, changeset: changeset)
+      end
     end
   end
 
   def delete(conn, %{"id" => id}) do
+    user = Pow.Plug.current_user(conn)
     post = Feed.get_post!(id)
-    {:ok, _post} = Feed.delete_post(post)
 
-    conn
-    |> put_flash(:info, "Post deleted successfully.")
-    |> redirect(to: Routes.post_path(conn, :index))
+    with :ok <- Bodyguard.permit(Feed, :delete, user, post),
+        {:ok, _post} <- Feed.delete_post(post)
+    do
+      conn
+      |> put_flash(:info, "Post deleted successfully.")
+      |> redirect(to: Routes.post_path(conn, :index))
+    end
   end
 end

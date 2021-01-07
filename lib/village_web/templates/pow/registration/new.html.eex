@@ -1,0 +1,30 @@
+<div class="p-8">
+  <div class="border-green-400 border-2 rounded-md p-4 mt-10 mx-auto max-w-lg text-left">
+    <h1 class="text-2xl mb-3 text-center">Register</h1>
+    
+    <%= form_for @changeset, @action, [as: :user, class: ""], fn f -> %>
+      <%= if @changeset.action do %>
+          <p>Oops, something went wrong!</p>
+      <% end %>
+    
+      <%= label f, Pow.Ecto.Schema.user_id_field(@changeset) %><br />
+      <%= text_input f, Pow.Ecto.Schema.user_id_field(@changeset), class: "border-grey-50 border-2" %>
+      <%= error_tag f, Pow.Ecto.Schema.user_id_field(@changeset) %><br/>
+    
+      <%= label f, :password %><br/>
+      <%= password_input f, :password, class: "border-grey-50 border-2" %>
+      <%= error_tag f, :password %><br/>
+    
+      <%= label f, :password_confirmation %><br/>
+      <%= password_input f, :password_confirmation, class: "border-grey-50 border-2" %>
+      <%= error_tag f, :password_confirmation %><br/>
+    
+      <div>
+        <%= submit "Register" %>
+      </div>
+    <% end %>
+    
+    
+    <span><%= link "Sign in", to: Routes.pow_session_path(@conn, :new) %></span>
+  </div>
+</div>
