@@ -3,6 +3,7 @@ defmodule VillageWeb.FeedLive do
 
   alias Village.Feed
   alias Village.Feed.Post
+  alias VillageWeb.PostComponent
 
   def mount(_params, %{"current_user" => current_user}, socket) do
     {:ok, assign(socket, 
