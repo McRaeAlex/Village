@@ -13,6 +13,12 @@ defmodule VillageWeb.Router do
 
   pipeline :protected do
     plug Pow.Plug.RequireAuthenticated, error_handler: Pow.Phoenix.PlugErrorHandler
+    # Adds the current user to the session so we can use it there
+    plug :add_user_to_session
+  end
+
+  defp add_user_to_session(conn, _opts) do
+    conn |> put_session(:current_user, Pow.Plug.current_user(conn))
   end
 
   pipeline :api do

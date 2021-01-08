@@ -11,4 +11,5 @@ defmodule Village.Accounts.User do
 
     timestamps()
   end
+
 end

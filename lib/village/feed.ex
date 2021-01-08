@@ -29,7 +29,7 @@ defmodule Village.Feed do
 
   """
   def list_posts do
-    Repo.all(Post)
+    Repo.all(from p in Post, order_by: [desc: p.inserted_at])
     |> Repo.preload(:author)
   end
 
