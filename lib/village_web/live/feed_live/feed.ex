@@ -6,12 +6,16 @@ defmodule VillageWeb.FeedLive do
   alias VillageWeb.PostComponent
 
   def mount(_params, %{"current_user" => current_user}, socket) do
-    {:ok, assign(socket, 
-        posts: list_posts(),
+    socket = 
+      assign(socket,
         changeset: Feed.change_post(%Post{}),
-        current_user: current_user
+        current_user: current_user,
+        page: 1,
+        per_page: 10,
       )
-    }
+      |> load_posts()
+
+    {:ok, socket, temporary_assigns: [posts: []]}
   end
 
   def handle_event("new", %{"post" => new_post}, socket) do
@@ -27,6 +31,7 @@ defmodule VillageWeb.FeedLive do
           socket
           |> put_flash(:info, "Post created!")
           |> update(:posts, fn posts -> [post | posts] end)
+          |> assign(:update_action, :prepend)
         }
 
       {:error, changeset} ->
@@ -34,7 +39,22 @@ defmodule VillageWeb.FeedLive do
     end
   end
 
-  defp list_posts() do
-    Feed.list_posts()
+  def handle_event("load-more", _params, socket) do
+    socket =
+      socket
+      |> update(:page, &(&1 + 1))
+      |> load_posts()
+
+    {:noreply, socket}
+  end
+
+  defp load_posts(socket) do
+    page = socket.assigns.page
+    per_page = socket.assigns.per_page
+
+    assign(socket,
+      posts: Feed.list_posts(page, per_page),
+      update_action: :append
+    )
   end
 end

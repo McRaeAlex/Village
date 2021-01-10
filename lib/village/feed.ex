@@ -28,8 +28,32 @@ defmodule Village.Feed do
       [%Post{}, ...]
 
   """
-  def list_posts do
-    Repo.all(from p in Post, order_by: [desc: p.inserted_at])
+  def list_posts() do
+    query =
+      from p in Post,
+      order_by: [desc: p.inserted_at]
+
+    Repo.all(query)
+    |> Repo.preload(:author)
+  end
+
+  @doc """
+  Returns the list of posts.
+
+  ## Examples
+
+      iex> list_posts()
+      [%Post{}, ...]
+
+  """
+  def list_posts(page \\ 1, per_page \\ 50) do
+    query =
+      from p in Post,
+      offset: ^((page - 1) * per_page),
+      limit: ^per_page,
+      order_by: [desc: p.inserted_at]
+
+    Repo.all(query)
     |> Repo.preload(:author)
   end
 

@@ -1,15 +1,29 @@
-<div class="flex flex-col items-center space-y-4 pt-5 px-2">
-    <div class="bg-red-100 w-96 p-4 shadow-md rounded">
+<div class="flex flex-col items-center space-y-4 pt-5">
+    <div id="feed-new-post" class="bg-red-100 w-96 p-4 shadow-md rounded">
         <%= form_for @changeset, "#" , [phx_submit: :new], fn f -> %>
             <%= textarea f, :content, placeholder: "Write your post!", class: "rounded resize-none max-w-full w-96 h-md outline-none p-2"%><br>
             <%= submit "Post!", class: "bg-gray-200 p-1 shadow-sm rounded" %>
         <% end %>
     </div>
-    <%= for post <- @posts do %>
-        <%= live_component @socket, PostComponent,
-         post_id: post.id,
-         name: post.author.email,
-         content: post.content
-        %>    
+    <div class="flex flex-col items-center space-y-4 px-2" id="feed-posts" phx-update="<%= @update_action %>">
+        <%= for post <- @posts do %>
+            <%= live_component @socket, PostComponent,
+             id: post.id,
+             post_id: post.id,
+             name: post.author.email,
+             content: post.content
+            %>    
+        <% end %>
+    </div>
+
+    <%# This stops the trigger from happening an infinite amount of times %>
+    <%= if !Enum.empty?(@posts) do %>
+        <div id="footer"
+            phx-hook="InfiniteScroll"
+            data-page-number="<%= @page %>">
+            <div class="loader">
+                Loading More...
+            </div>
+        </div>
     <% end %>
 </div>
