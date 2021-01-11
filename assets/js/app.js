@@ -8,6 +8,8 @@ import {Socket} from "phoenix"
 import topbar from "topbar"
 import {LiveSocket} from "phoenix_live_view"
 
+import Alpine from "alpinejs"
+
 // Hooks setup
 import InfiniteScroll from './hooks/infinite_scroll';
 
@@ -16,7 +18,17 @@ let hooks = {
 };
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {hooks: hooks, params: {_csrf_token: csrfToken}})
+let liveSocket = new LiveSocket("/live", Socket,
+    {
+        hooks: hooks, 
+        params: {_csrf_token: csrfToken},
+        dom: {
+            onBeforeElUpdated(from, to){
+                if (from.__x) { Alpine.clone(from.__x, to) }
+            }
+        }
+    }
+);
 
 // Topbar config
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})

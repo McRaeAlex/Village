@@ -1,5 +1,5 @@
 <div class="flex flex-col items-center space-y-4 pt-5">
-    <div id="feed-new-post" class="bg-red-100 w-96 p-4 shadow-md rounded">
+    <div id="feed-new-post" class="bg-green-100 w-96 p-4 shadow-md rounded">
         <%= form_for @changeset, "#" , [phx_submit: :new], fn f -> %>
             <%= textarea f, :content, placeholder: "Write your post!", class: "rounded resize-none max-w-full w-96 h-md outline-none p-2"%><br>
             <%= submit "Post!", class: "bg-gray-200 p-1 shadow-sm rounded" %>
@@ -11,7 +11,8 @@
              id: post.id,
              post_id: post.id,
              name: post.author.email,
-             content: post.content
+             content: post.content,
+             show_controls: true
             %>    
         <% end %>
     </div>
