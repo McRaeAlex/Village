@@ -31,7 +31,7 @@ defmodule Village.Feed do
   def list_posts() do
     query =
       from p in Post,
-      order_by: [desc: p.inserted_at]
+        order_by: [desc: p.inserted_at]
 
     Repo.all(query)
     |> Repo.preload(:author)
@@ -49,9 +49,9 @@ defmodule Village.Feed do
   def list_posts(page \\ 1, per_page \\ 50) do
     query =
       from p in Post,
-      offset: ^((page - 1) * per_page),
-      limit: ^per_page,
-      order_by: [desc: p.inserted_at]
+        offset: ^((page - 1) * per_page),
+        limit: ^per_page,
+        order_by: [desc: p.inserted_at]
 
     Repo.all(query)
     |> Repo.preload(:author)

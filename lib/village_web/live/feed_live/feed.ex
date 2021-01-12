@@ -6,12 +6,12 @@ defmodule VillageWeb.FeedLive do
   alias VillageWeb.PostComponent
 
   def mount(_params, %{"current_user" => current_user}, socket) do
-    socket = 
+    socket =
       assign(socket,
         changeset: Feed.change_post(%Post{}),
         current_user: current_user,
         page: 1,
-        per_page: 10,
+        per_page: 10
       )
       |> load_posts()
 
@@ -27,15 +27,41 @@ defmodule VillageWeb.FeedLive do
         # database
         post = Map.put(post, :author, user)
 
-        {:noreply, 
-          socket
-          |> put_flash(:info, "Post created!")
-          |> update(:posts, fn posts -> [post | posts] end)
-          |> assign(:update_action, :prepend)
-        }
+        {:noreply,
+         socket
+         |> put_flash(:notice, "Post created!")
+         |> update(:posts, fn posts -> [post | posts] end)
+         |> assign(:update_action, :prepend)}
 
       {:error, changeset} ->
         {:noreply, update(socket, :changeset, changeset)}
+    end
+  end
+
+  def handle_event("edit", params, socket) do
+    IO.inspect(params)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("delete", %{"post_id" => post_id}, socket) do
+    user = socket.assigns[:current_user]
+    post = Feed.get_post!(post_id)
+
+    with :ok <- Bodyguard.permit(Feed, :delete, user, post),
+         {:ok, post} <- Feed.delete_post(post) do
+      socket = 
+        socket
+        |> put_flash(:notice, "Post deleted successfully.")
+        |> update(:posts, fn posts -> [post | posts] end)
+      {:noreply, socket}
+    else
+      {:error, :unauthorized} ->
+        {:noreply, socket |> put_flash(:error, "Your not authorized to delete that post!")}
+      {:error, %Ecto.Changeset{} = _changeset} -> 
+        {:noreply, socket |> put_flash(:error, "Failed to delete post. Already deleted")}
+      {:error, _reason} ->
+        {:noreply, socket |> put_flash(:error, "Failed to delete post.")}
     end
   end
 
