@@ -8,16 +8,18 @@
     <div class="flex flex-col items-center space-y-4 px-2" id="feed-posts" phx-update="<%= @update_action %>">
         <%= for post <- @posts do %>
             <% 
+                # Variables
                 deleted = post.__meta__.state == :deleted
                 show_controls = @current_user.id == post.author_id
             %>
+
             <%= live_component @socket, PostComponent,
-             id: post.id,
-             name: post.author.email,
-             content: post.content,
-             show_controls: show_controls,
-             deleted: deleted
-            %>    
+                id: post.id,
+                name: post.author.email,
+                content: post.content,
+                show_controls: show_controls,
+                deleted: deleted
+            %>
         <% end %>
     </div>
 

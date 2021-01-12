@@ -28,6 +28,9 @@ defmodule VillageWeb.Router do
   scope "/", VillageWeb do
     pipe_through [:browser, :protected]
 
+    live "/profile", ProfileLive.Index, :index
+    live "/profile/:id", ProfileLive.Index, :index
+
     live "/feed", FeedLive, :index
 
     resources "/posts", PostController

@@ -5,7 +5,12 @@ defmodule VillageWeb.FeedLive do
   alias Village.Feed.Post
   alias VillageWeb.PostComponent
 
+  @impl true
   def mount(_params, %{"current_user" => current_user}, socket) do
+    if connected?(socket) do
+      Feed.subscribe()
+    end
+
     socket =
       assign(socket,
         changeset: Feed.change_post(%Post{}),
@@ -18,15 +23,12 @@ defmodule VillageWeb.FeedLive do
     {:ok, socket, temporary_assigns: [posts: []]}
   end
 
+  @impl true
   def handle_event("new", %{"post" => new_post}, socket) do
     user = socket.assigns[:current_user]
 
     case Feed.create_post(user, new_post) do
       {:ok, post} ->
-        # Add the user to the post because we don't need to load it from the 
-        # database
-        post = Map.put(post, :author, user)
-
         {:noreply,
          socket
          |> put_flash(:notice, "Post created!")
@@ -38,33 +40,40 @@ defmodule VillageWeb.FeedLive do
     end
   end
 
+  @impl true
   def handle_event("edit", params, socket) do
+    # TODO: handle editing posts
     IO.inspect(params)
 
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("delete", %{"post_id" => post_id}, socket) do
     user = socket.assigns[:current_user]
     post = Feed.get_post!(post_id)
 
     with :ok <- Bodyguard.permit(Feed, :delete, user, post),
          {:ok, post} <- Feed.delete_post(post) do
-      socket = 
+      socket =
         socket
         |> put_flash(:notice, "Post deleted successfully.")
         |> update(:posts, fn posts -> [post | posts] end)
+
       {:noreply, socket}
     else
       {:error, :unauthorized} ->
         {:noreply, socket |> put_flash(:error, "Your not authorized to delete that post!")}
-      {:error, %Ecto.Changeset{} = _changeset} -> 
+
+      {:error, %Ecto.Changeset{} = _changeset} ->
         {:noreply, socket |> put_flash(:error, "Failed to delete post. Already deleted")}
+
       {:error, _reason} ->
         {:noreply, socket |> put_flash(:error, "Failed to delete post.")}
     end
   end
 
+  @impl true
   def handle_event("load-more", _params, socket) do
     socket =
       socket
@@ -72,6 +81,17 @@ defmodule VillageWeb.FeedLive do
       |> load_posts()
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:post_created, post}, socket) do
+    {:noreply,
+     socket |> update(:posts, fn posts -> [post | posts] end) |> assign(:update_action, :prepend)}
+  end
+
+  @impl true
+  def handle_info({:post_deleted, post}, socket) do
+    {:noreply, socket |> update(:posts, fn posts -> [post | posts] end)}
   end
 
   defp load_posts(socket) do

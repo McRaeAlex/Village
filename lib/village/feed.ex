@@ -28,9 +28,14 @@ defmodule Village.Feed do
       [%Post{}, ...]
 
   """
-  def list_posts() do
+  def list_posts(page, per_page) do
+    page = max(page, 1)
+    per_page = min(per_page, 50)
+
     query =
       from p in Post,
+        offset: ^((page - 1) * per_page),
+        limit: ^per_page,
         order_by: [desc: p.inserted_at]
 
     Repo.all(query)
@@ -46,15 +51,34 @@ defmodule Village.Feed do
       [%Post{}, ...]
 
   """
-  def list_posts(page \\ 1, per_page \\ 50) do
+  def list_posts() do
     query =
       from p in Post,
-        offset: ^((page - 1) * per_page),
-        limit: ^per_page,
         order_by: [desc: p.inserted_at]
 
     Repo.all(query)
     |> Repo.preload(:author)
+  end
+
+  
+
+  @doc """
+  Returns the list of posts owned by a user.
+
+  ## Examples
+
+      iex> list_posts()
+      [%Post{}, ...]
+
+  """
+  def list_user_posts(%User{} = user) do
+    query =
+      from p in Post,
+        where: p.author_id == ^user.id,
+        order_by: [desc: p.inserted_at]
+
+    Repo.all(query)
+    |> Enum.map(fn post -> set_author(post, user) end)
   end
 
   @doc """
@@ -93,6 +117,15 @@ defmodule Village.Feed do
     |> Post.changeset(attrs)
     |> Ecto.Changeset.put_change(:author_id, author.id)
     |> Repo.insert()
+    |> maybe_set_author(author)
+    |> broadcast(:post_created)
+  end
+
+  defp maybe_set_author({:error, _reason} = error, _author), do: error
+  defp maybe_set_author({:ok, post}, author), do: {:ok, set_author(post, author)}
+
+  defp set_author(post, author) do
+    Map.put(post, :author, author)
   end
 
   @doc """
@@ -127,6 +160,7 @@ defmodule Village.Feed do
   """
   def delete_post(%Post{} = post) do
     Repo.delete(post)
+    |> broadcast(:post_deleted)
   end
 
   @doc """
@@ -140,5 +174,16 @@ defmodule Village.Feed do
   """
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
+  end
+
+  def subscribe() do
+    Phoenix.PubSub.subscribe(Village.PubSub, "posts")
+  end
+
+  defp broadcast({:error, _reason} = error, _event), do: error
+
+  defp broadcast({:ok, post} = ok, event) do
+    Phoenix.PubSub.broadcast(Village.PubSub, "posts", {event, post})
+    ok
   end
 end
