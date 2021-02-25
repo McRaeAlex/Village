@@ -43,8 +43,6 @@ defmodule VillageWeb.FeedLive do
   @impl true
   def handle_event("edit", params, socket) do
     # TODO: handle editing posts
-    IO.inspect(params)
-
     {:noreply, socket}
   end
 
