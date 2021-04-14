@@ -60,8 +60,6 @@ defmodule Village.Feed do
     |> Repo.preload(:author)
   end
 
-  
-
   @doc """
   Returns the list of posts owned by a user.
 

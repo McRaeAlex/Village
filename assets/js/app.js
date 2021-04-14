@@ -7,11 +7,15 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import topbar from "topbar"
 import {LiveSocket} from "phoenix_live_view"
+import {AlpineToast, TailWindCSSConfig} from "alpine-toast"
 
 import Alpine from "alpinejs"
 
 // Hooks setup
 import InfiniteScroll from './hooks/infinite_scroll';
+
+const toaster = new AlpineToast(TailWindCSSConfig);
+toaster.start();
 
 let hooks = {
     InfiniteScroll,

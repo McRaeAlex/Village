@@ -3,8 +3,28 @@ defmodule VillageWeb.PostComponent do
 
   alias Village.Feed
 
+  @impl true
   def mount(socket) do
-    {:ok, socket}
+    {:ok, socket |> assign(editing: false, changeset: Feed.change_post(%Feed.Post{}))}
+  end
+
+  # @impl true
+  # def preload(list_of_assigns) do
+  #   list_of_post_ids = Enum.map(list_of_assigns, & &1.post_id)
+
+  #   posts = from(f in Feed.Post, where: f.id in ^list_of_post_ids, select: {u.id, u})
+  #     |> Repo.all()
+  #     |> Map.new()
+
+  #   Enum.map(list_of_assigns, fn assigns ->
+  #     Map.put(assigns, :post, post[assigns.post_id])
+  #   end)
+  # end
+
+  @impl true
+  def update(assigns, socket) do
+    IO.inspect assigns
+    {:ok, assign(socket, assigns)}
   end
 
   @impl true
@@ -31,15 +51,25 @@ defmodule VillageWeb.PostComponent do
         {:noreply, socket |> put_flash(:error, "Failed to delete post.")}
     end
   end
+  
+  @impl true
+  def handle_event("edit", _, socket) do
+    {:noreply, socket |> put_flash(:info, "unimplemented")}
+  end
 
-  def controls(assigns) do
+  @impl true
+  def handle_event("toggle_edit", _, socket) do
+    {:noreply, socket |> update(:editing, fn editing -> !editing end)}
+  end
+
+  defp controls(assigns) do
     ~L"""
     <span class="origin-top-right absolute right-2 top-1 cursor-pointer" x-on:click="open = true">x</span>
     <div class="origin-top-right absolute right-0 top-0 mt-2 w-48 rounded-md shadow-lg"
         x-show.transition="open"
         x-on:click.away="open = false">
         <div class="py-1 rounded-md bg-white shadow-xs">
-            <a phx-target="<%= @myself %>" phx-click="edit" phx-value-post_id="<%= @id %>" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">
+            <a phx-target="<%= @myself %>" phx-click="toggle_edit" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">
                 Edit
             </a>
             <a phx-target="<%= @myself %>" phx-click="delete" phx-value-post_id="<%= @id %>" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">
@@ -50,26 +80,51 @@ defmodule VillageWeb.PostComponent do
     """
   end
 
+  defp edit(assigns) do
+    ~L"""
+    <div>
+      <%= f = form_for @changeset, "#", [phx_target: @myself, phx_submit: :edit] %>
+        <%= textarea f, :content, class: "rounded resize-none max-w-full outline" %><br>
+        <%= submit "Update!", class: "bg-gray-200 p1 shadow-sm rounded" %>
+        <button phx-target="<%= @myself %>" phx-click="toggle_edit" class="bg-gray-100"> Cancel </button>
+      </form>
+    </div>
+    """
+  end
+  
+  
+
+  @impl true
   def render(assigns) do
     ~L"""
-    <div class="bg-gray-50 p-4 w-96 shadow-lg rounded relative <%= if @deleted do %>hidden<% end %>"
+    <% 
+      # Variables
+      deleted = @post.__meta__.state == :deleted
+      show_controls = @current_user.id == @post.author_id
+    %>
+    <div class="bg-gray-50 p-4 w-96 shadow-lg rounded relative <%= if deleted do %>hidden<% end %>"
         x-data="{open: false}"
         id="post-<%= @id %>"
     >
-        <h2>
-            <%= @name %>
-        </h2>
+      <h2>
+          <%= @post.author.email%>
+      </h2>
+      <%= if @editing do %>
+        <%# Show the edit form %>
+        <%= edit(assigns) %>
+      <% else %>
         <%# Show the controls to modify and delete posts %>
-        <%= if @show_controls do %>
+        <%= if show_controls do %>
             <%= controls(assigns) %>
         <% end %>
         <p>
-            <%= @content %>
+            <%= @post.content %>
         </p>
         <div>
             <!-- New Comment -->
             <!-- Comments -->
         </div>
+      <% end %>
     </div>
     """
   end

@@ -11,7 +11,13 @@ defmodule VillageWeb.ProfileLive.Index do
 
     socket =
       socket
-      |> assign(current_user: current_user, page: 1, per_page: 10, posts: [], update_action: :prepend)
+      |> assign(
+        current_user: current_user,
+        page: 1,
+        per_page: 10,
+        posts: [],
+        update_action: :prepend
+      )
       |> assign_user(params, current_user)
       |> load_posts()
 

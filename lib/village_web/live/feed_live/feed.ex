@@ -41,37 +41,6 @@ defmodule VillageWeb.FeedLive do
   end
 
   @impl true
-  def handle_event("edit", params, socket) do
-    # TODO: handle editing posts
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("delete", %{"post_id" => post_id}, socket) do
-    user = socket.assigns[:current_user]
-    post = Feed.get_post!(post_id)
-
-    with :ok <- Bodyguard.permit(Feed, :delete, user, post),
-         {:ok, post} <- Feed.delete_post(post) do
-      socket =
-        socket
-        |> put_flash(:notice, "Post deleted successfully.")
-        |> update(:posts, fn posts -> [post | posts] end)
-
-      {:noreply, socket}
-    else
-      {:error, :unauthorized} ->
-        {:noreply, socket |> put_flash(:error, "Your not authorized to delete that post!")}
-
-      {:error, %Ecto.Changeset{} = _changeset} ->
-        {:noreply, socket |> put_flash(:error, "Failed to delete post. Already deleted")}
-
-      {:error, _reason} ->
-        {:noreply, socket |> put_flash(:error, "Failed to delete post.")}
-    end
-  end
-
-  @impl true
   def handle_event("load-more", _params, socket) do
     socket =
       socket
@@ -83,12 +52,14 @@ defmodule VillageWeb.FeedLive do
 
   @impl true
   def handle_info({:post_created, post}, socket) do
+    # this just adds to the front of the posts
     {:noreply,
      socket |> update(:posts, fn posts -> [post | posts] end) |> assign(:update_action, :prepend)}
   end
 
   @impl true
   def handle_info({:post_deleted, post}, socket) do
+    # We do not remove the post but we don't render it in the template
     {:noreply, socket |> update(:posts, fn posts -> [post | posts] end)}
   end
 
