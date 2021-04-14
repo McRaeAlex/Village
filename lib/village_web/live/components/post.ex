@@ -1,7 +1,3 @@
-# TODO:
-# ISSUE: Although updating does work at the db level and the changes go
-# through we do not render it instantly because we are not the source of truth
-
 defmodule VillageWeb.PostComponent do
   use VillageWeb, :live_component
 
