@@ -1,3 +1,7 @@
+# TODO:
+# ISSUE: Although updating does work at the db level and the changes go
+# through we do not render it instantly because we are not the source of truth
+
 defmodule VillageWeb.PostComponent do
   use VillageWeb, :live_component
 
@@ -5,7 +9,7 @@ defmodule VillageWeb.PostComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, socket |> assign(editing: false, changeset: Feed.change_post(%Feed.Post{}))}
+    {:ok, socket |> assign(editing: false)}
   end
 
   # @impl true
@@ -23,14 +27,13 @@ defmodule VillageWeb.PostComponent do
 
   @impl true
   def update(assigns, socket) do
-    IO.inspect assigns
-    {:ok, assign(socket, assigns)}
+    {:ok, socket |> assign(assigns) |> assign(changeset: Feed.change_post(assigns[:post]))}
   end
 
   @impl true
   def handle_event("delete", %{"post_id" => post_id}, socket) do
     user = socket.assigns[:current_user]
-    post = Feed.get_post!(post_id)
+    post = socket.assigns[:post]
 
     with :ok <- Bodyguard.permit(Feed, :delete, user, post),
          {:ok, post} <- Feed.delete_post(post) do
@@ -51,10 +54,28 @@ defmodule VillageWeb.PostComponent do
         {:noreply, socket |> put_flash(:error, "Failed to delete post.")}
     end
   end
-  
+
   @impl true
-  def handle_event("edit", _, socket) do
-    {:noreply, socket |> put_flash(:info, "unimplemented")}
+  def handle_event("edit", %{"post" => updated_post} = params, socket) do
+    user = socket.assigns[:current_user]
+    post = socket.assigns[:post]
+
+    with :ok <- Bodyguard.permit(Feed, :edit, user, post),
+         {:ok, post} <- Feed.update_post(post, updated_post) do
+      socket =
+        socket
+        |> assign(post: post)
+        |> update(:editing, fn editing -> !editing end)
+        |> put_flash(:notice, "Post updated successfully.")
+
+      {:noreply, socket}
+    else
+      {:error, :unauthorized} ->
+        {:noreply, socket |> put_flash(:error, "Your not authorized to edit that post!")}
+
+      {:error, _reason} ->
+        {:noreply, socket |> put_flash(:error, "Failed to edit post.")}
+    end
   end
 
   @impl true
@@ -69,7 +90,7 @@ defmodule VillageWeb.PostComponent do
         x-show.transition="open"
         x-on:click.away="open = false">
         <div class="py-1 rounded-md bg-white shadow-xs">
-            <a phx-target="<%= @myself %>" phx-click="toggle_edit" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">
+            <a x-on:click="open = false" phx-target="<%= @myself %>" phx-click="toggle_edit" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">
                 Edit
             </a>
             <a phx-target="<%= @myself %>" phx-click="delete" phx-value-post_id="<%= @id %>" class="block px-4 py-2 text-sm leading-5 hover:bg-gray-100">
@@ -84,15 +105,13 @@ defmodule VillageWeb.PostComponent do
     ~L"""
     <div>
       <%= f = form_for @changeset, "#", [phx_target: @myself, phx_submit: :edit] %>
-        <%= textarea f, :content, class: "rounded resize-none max-w-full outline" %><br>
+        <%= textarea f, :content, class: "rounded resize-none max-w-full w-full outline" %><br>
         <%= submit "Update!", class: "bg-gray-200 p1 shadow-sm rounded" %>
         <button phx-target="<%= @myself %>" phx-click="toggle_edit" class="bg-gray-100"> Cancel </button>
       </form>
     </div>
     """
   end
-  
-  
 
   @impl true
   def render(assigns) do
@@ -109,14 +128,15 @@ defmodule VillageWeb.PostComponent do
       <h2>
           <%= @post.author.email%>
       </h2>
+      <%= if show_controls do %>
+            <%= controls(assigns) %>
+      <% end %>
       <%= if @editing do %>
         <%# Show the edit form %>
         <%= edit(assigns) %>
       <% else %>
         <%# Show the controls to modify and delete posts %>
-        <%= if show_controls do %>
-            <%= controls(assigns) %>
-        <% end %>
+        
         <p>
             <%= @post.content %>
         </p>
