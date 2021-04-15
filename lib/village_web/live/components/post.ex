@@ -103,7 +103,7 @@ defmodule VillageWeb.PostComponent do
       <%= f = form_for @changeset, "#", [phx_target: @myself, phx_submit: :edit] %>
         <%= textarea f, :content, class: "rounded resize-none max-w-full w-full outline" %><br>
         <%= submit "Update!", class: "bg-gray-200 p1 shadow-sm rounded" %>
-        <button phx-target="<%= @myself %>" phx-click="toggle_edit" class="bg-gray-100"> Cancel </button>
+        <button type="button" phx-target="<%= @myself %>" phx-click="toggle_edit" class="bg-gray-100"> Cancel </button>
       </form>
     </div>
     """
@@ -121,6 +121,7 @@ defmodule VillageWeb.PostComponent do
         x-data="{open: false}"
         id="post-<%= @id %>"
     >
+      <div id="post-live-flash-notice-<%= @post.id %>" phx-hook="Toaster"><%= live_flash(@flash, :notice) %></div>
       <h2>
           <%= @post.author.email%>
       </h2>

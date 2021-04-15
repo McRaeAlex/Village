@@ -60,7 +60,10 @@ defmodule VillageWeb.FeedLive do
   @impl true
   def handle_info({:post_deleted, post}, socket) do
     # We do not remove the post but we don't render it in the template
-    {:noreply, socket |> update(:posts, fn posts -> [post | posts] end)}
+    {:noreply,
+     socket
+     |> update(:posts, fn posts -> [post | posts] end)
+     |> put_flash(:notice, "Post deleted")}
   end
 
   defp load_posts(socket) do

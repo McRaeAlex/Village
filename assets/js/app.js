@@ -15,11 +15,16 @@ import Alpine from "alpinejs"
 import InfiniteScroll from './hooks/infinite_scroll';
 
 const toaster = new AlpineToast(TailWindCSSConfig);
-toaster.start();
 
 let hooks = {
     InfiniteScroll,
 };
+hooks.Toaster = {
+    mounted() {
+        let makeToast = toaster.makeToast.bind(toaster);
+        // makeToast(this.el, {duration: 100000});
+    }
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket,

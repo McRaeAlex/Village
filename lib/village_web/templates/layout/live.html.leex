@@ -1,4 +1,3 @@
-<p class="bg-green-700" role="alert"><%= live_flash(@flash, :notice) %></p>
-<p class="bg-red-700" role="alert"><%= live_flash(@flash, :error) %></p>
-<div x-toast>Wow you look really great</div>
+<p id="global-live-flash-notice" phx-hook="Toaster" class="bg-green-700" role="alert"><%= live_flash(@flash, :notice) %></p>
+<p id="global-live-flash-error" phx-hook="Toaster" class="bg-red-700" role="alert"><%= live_flash(@flash, :error) %></p>
 <%= @inner_content %>
